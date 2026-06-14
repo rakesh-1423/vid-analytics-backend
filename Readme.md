@@ -20,3 +20,8 @@
     After install setting (create 2 file)
     1. .prettierrc => it store all setting of prettier
     2. .prettierignore => it store which file ignore from prettier setting
+
+# install mongoose, express, dotenv
+    => npm i mongoose
+    => npm i express
+    => npm i dotenv
