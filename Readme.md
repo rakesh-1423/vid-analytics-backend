@@ -38,3 +38,17 @@
 # Install cookie-parser and cors package
     1. cooki-parser : middle-waare frontend se req atta hai to pahle cookie dekhta h phir response deta hai. ek tarah se middleware ka kam karta hai
     2. cors : cross origin resource sharing solving the cors problem
+
+# Create utils file 
+    1. ApiError.js -> Handle all error related to api
+    2. ApiResponse.js -> formate of response of api
+    3. asyncHandler.js -> formate for async and promise handle
+
+# Create models
+    1. user.model.js -> store user schema 
+    2. video.model.j -> store video schem
+
+# Install mongoose-aggregate-paginate, bcrypt
+    npm i mongoose-aggregate-paginate-v2
+    npm i bcrypt  // help to hash passwords
+    npm i jsonwebtoken // use for decript the password ("Read docs if need")
