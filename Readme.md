@@ -25,3 +25,16 @@
     => npm i mongoose
     => npm i express
     => npm i dotenv
+
+# Connect mongodb to the app server
+    src -> db -> index.js (MONOGODB connection code here).
+
+# Import setting 
+    All dependency import using import not require so code make consistancy (see index.js)
+    step1 : IMPORT => import dotenv from 'dotenv'
+    step2 : SET PATH => dotenv.config({path: './env'})
+    step3 : RUN EVERY TIME SET : go to package.json file inside script add {-r dotenv/config --experimental-json-modules}
+
+# Install cookie-parser and cors package
+    1. cooki-parser : middle-waare frontend se req atta hai to pahle cookie dekhta h phir response deta hai. ek tarah se middleware ka kam karta hai
+    2. cors : cross origin resource sharing solving the cors problem
