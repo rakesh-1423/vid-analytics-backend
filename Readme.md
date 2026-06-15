@@ -52,3 +52,11 @@
     npm i mongoose-aggregate-paginate-v2
     npm i bcrypt  // help to hash passwords
     npm i jsonwebtoken // use for decript the password ("Read docs if need")
+
+# cloudinary use for store Image and video files
+    step1: Login on cloudinary
+    step2: npm i cloudinary
+    step3: npm i multer  ()
+
+
+    
