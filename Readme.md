@@ -58,5 +58,9 @@
     step2: npm i cloudinary
     step3: npm i multer  ()
 
+# user Conteroller and routes
+    file : user.controller.js (define registerUser)
+    file: user.routes.js (define route)
 
     
+# install postman 
