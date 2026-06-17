@@ -51,15 +51,15 @@ const userSchema = new Schema(
     }
 )
 
-
+// pre save means db create hone se pahle password encryt kro
 userSchema.pre("save", async function (next) {
-    if(!this.isModified("password")) return next();
+    if(!this.isModified("password")) return next;
 
     this.password = await bcrypt.hash(this.password, 10)  //encrypt password
-    // next();
+    next;
 })
 
-userSchema.methods.iSpasswordCurrect = async function (password) {
+userSchema.methods.isPasswordCorrect  = async function (password) {
     return await bcrypt.compare(password, this.password)
 }
 
@@ -74,13 +74,13 @@ userSchema.methods.generateAccessToken = function(){
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: ACCESS_TOKEN_EXPIRY
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
     )
 }
 
 // refress token 
-userSchema.method.generateRefressToken = function(){
+userSchema.methods.generateRefreshToken = function(){
     return jwt.sign(
         {
             _id: this._id,

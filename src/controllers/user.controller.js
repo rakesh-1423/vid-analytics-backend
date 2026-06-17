@@ -4,6 +4,21 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        const user =  await User.findById(userId);
+        const accessToken = user.generateAccessToken();
+        const refreshToken = user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;  // Refresh token store karte hai apne pass.
+        await user.save({validateBeforeSave: false}) // refresh token save in db (validateBeforeSave: false) because not varify simply save
+
+        return {accessToken, refreshToken}
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating refresh and access token.")
+    }
+}
+
 const registerUser = asyncHandler(async (req, res) => {
   // Algorithms for controller
   // get user details from frontend
@@ -26,7 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All field are required");
   }
 
-  // check user already exits ?
+  // check user already exits ? if exist then return its all data
   const existUser = await User.findOne({
     $or: [{ username }, { email }],
   });
@@ -51,14 +66,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // avatar required so check
   if (!avatarLocalPath) {
-    throw ApiError(400, "avatar file is required");
+    throw new ApiError(400, "avatar file is required");
   }
   //upload image on cloudinary
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
   // check avatar image upload on cloudinary or not
   if (!avatar) {
-    throw ApiError(400, "avatar file is required.");
+    throw new ApiError(400, "avatar file is required.");
   }
 
   // Now upload on db
@@ -76,7 +91,7 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 
   if (!createdUser) {
-    throw ApiError(500, "something went wrong while registering the user");
+    throw new ApiError(500, "something went wrong while registering the user");
   }
 
   return res
@@ -84,4 +99,95 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User Register Successfully."));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+    // req body -> data
+    // username or email
+    // find the user 
+    // password check 
+    // access and refresh token 
+    // send cookie (inside response)
+
+    const {username, email, password} = req.body
+
+    if(!(username || email)){
+        throw new ApiError(400, "username or password is required")
+    }
+
+    const user = await User.findOne({
+    $or: [{ username }, { email }]
+    });
+
+    if(!user){
+        throw new ApiError(404, "User does not exist.")
+    }
+
+    const existringuser = await User.findById(user._id)
+
+    // console.log("User new pass: ", password);
+    // console.log("User existing pass : ", existringuser.password);
+    // console.log("User existing username: ", existringuser.username);
+    // console.log("User existing all data which return : ", existringuser);
+    const isPasswordValid  = await user.isPasswordCorrect(password);
+
+    if(!isPasswordValid){
+        throw new ApiError(401, "Invalid user credential")
+    }
+
+    // Access and Refresh token
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id)
+
+    const loggedInUser = await User.findById(user._id).
+    select("-password -refreshToken")
+
+    // only modify server side not modify cookies from frontend side
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "User logged In successfully."
+        )
+    )
+})
+
+const logoutUser = asyncHandler( async (req, res) => {
+    // Algorithms
+    // find user identity (using middleware)
+    // save refresh token empty
+
+    await User.findByIdAndUpdate(
+      req.user._id,   // find by user in db by id
+      {
+        $set: {   // $ set is function of mongodb
+          refreshToken: undefined // update refreshToken, 
+        }
+      },
+      {
+        new: true   // isse db me updated user ka data return hoga
+      }
+    )
+
+    const options = {
+      httpOnly: true,
+      secure: true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged out"))
+
+})
+
+export { registerUser, loginUser, logoutUser};
